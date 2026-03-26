@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum ToolStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  REJECTED
+  SUSPENDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  clerkId            String    @unique
+  email              String    @unique
+  firstName          String?
+  lastName           String?
+  role               UserRole  @default(BUYER)
+  avatarUrl          String?
+  bio                String?
+  title              String?
+  stripeCustomerId   String?   @unique
+  stripeAccountId    String?   @unique // Stripe Connect for sellers
+  stripeOnboarded    Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  tools              Tool[]           @relation("SellerTools")
+  subscriptions      Subscription[]   @relation("BuyerSubscriptions")
+  reviews            Review[]
+  payouts            Payout[]
+
+  @@index([clerkId])
+  @@index([email])
+  @@index([role])
+}
+
+model Tool {
+  id                 String       @id @default(cuid())
+  sellerId           String
+  name               String
+  slug               String       @unique
+  description        String
+  longDescription    String?
+  price              Int          // cents per month (0 = free)
+  category           String
+  categoryLabel      String
+  status             ToolStatus   @default(DRAFT)
+  tags               String[]
+  imageUrl           String?
+  packageUrl         String?
+  stripeProductId    String?      @unique
+  stripePriceId      String?      @unique
+  installs           Int          @default(0)
+  rating             Float        @default(0)
+  reviewCount        Int          @default(0)
+  featured           Boolean      @default(false)
+  rejectionReason    String?
+  publishedAt        DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  // Relations
+  seller             User         @relation("SellerTools", fields: [sellerId], references: [id], onDelete: Cascade)
+  subscriptions      Subscription[]
+  reviews            Review[]
+
+  @@index([sellerId])
+  @@index([slug])
+  @@index([category])
+  @@index([status])
+  @@index([featured])
+  @@index([price])
+  @@index([rating])
+  @@index([installs])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  buyerId               String
+  toolId                String
+  stripeSubscriptionId  String?            @unique
+  status                SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  canceledAt            DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  // Relations
+  buyer                 User               @relation("BuyerSubscriptions", fields: [buyerId], references: [id], onDelete: Cascade)
+  tool                  Tool               @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([buyerId, toolId])
+  @@index([buyerId])
+  @@index([toolId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  toolId      String
+  rating      Int      // 1-5
+  title       String?
+  body        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tool        Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, toolId]) // one review per user per tool
+  @@index([toolId])
+  @@index([userId])
+  @@index([rating])
+}
+
+model Payout {
+  id              String   @id @default(cuid())
+  sellerId        String
+  amount          Int      // cents
+  currency        String   @default("usd")
+  stripePayoutId  String?  @unique
+  status          String   @default("pending") // pending, paid, failed
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime @default(now())
+
+  // Relations
+  seller          User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+}
