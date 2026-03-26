@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       customer: stripeCustomerId,
       mode: isOneTime ? "payment" : "subscription",
       line_items: [{ price: tool.stripePriceId, quantity: 1 }],
-      success_url: `${req.nextUrl.origin}/tool/${tool.slug}?subscribed=true`,
+      success_url: `${req.nextUrl.origin}/tool/${tool.slug}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.nextUrl.origin}/tool/${tool.slug}`,
       metadata: { buyerId: buyer.id, toolId: tool.id },
     };

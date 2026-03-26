@@ -6,6 +6,7 @@ import ToolCard from "@/components/ToolCard";
 import { db } from "@/lib/db";
 import { categoryIconsHero } from "@/lib/icons";
 import SubscribeButton from "@/components/SubscribeButton";
+import VerifyPurchase from "@/components/VerifyPurchase";
 import Link from "next/link";
 import { Star, Download, ChevronRight } from "lucide-react";
 import type { Tool } from "@/lib/data";
@@ -84,6 +85,8 @@ export default async function ToolPage({ params }: { params: Promise<{ id: strin
       <Header />
       <main className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <VerifyPurchase />
+
           <nav className="flex items-center gap-1.5 text-sm text-text-secondary mb-8">
             <Link href="/" className="hover:text-text-primary transition-colors cursor-pointer">Home</Link>
             <ChevronRight className="w-3.5 h-3.5" />
