@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { Menu, X, Sparkles, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, LayoutDashboard, ShieldCheck } from "lucide-react";
+
+const ADMIN_EMAILS = ["alondaniels.b@gmail.com"];
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -11,11 +13,14 @@ export default function Header() {
   const { user } = useUser();
   const { signOut } = useClerk();
 
+  const isAdmin = user?.emailAddresses?.some((e) => ADMIN_EMAILS.includes(e.emailAddress));
+
   const navLinks = [
     { href: "/browse", label: "Browse" },
     { href: "/sell", label: "Sell Your Tool" },
     { href: "/pricing", label: "Pricing" },
     { href: "/creators", label: "Creators" },
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   return (
@@ -38,8 +43,9 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-text-secondary hover:text-text-primary transition-colors text-sm font-medium cursor-pointer relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[2px] after:bg-primary-light after:transition-all hover:after:w-full"
+                className={`transition-colors text-sm font-medium cursor-pointer relative after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[2px] after:bg-primary-light after:transition-all hover:after:w-full ${link.href === "/admin" ? "text-primary hover:text-cta inline-flex items-center gap-1" : "text-text-secondary hover:text-text-primary"}`}
               >
+                {link.href === "/admin" && <ShieldCheck className="w-3.5 h-3.5" />}
                 {link.label}
               </Link>
             ))}
