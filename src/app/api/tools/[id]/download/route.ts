@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { get } from "@vercel/blob";
 
 export async function GET(
   _req: NextRequest,
@@ -44,12 +43,27 @@ export async function GET(
     }
   }
 
-  // Get a signed download URL for the private blob
-  const blob = await get(tool.blobUrl, { access: "private" });
+  // Fetch the private blob server-side using the token and stream to user
+  const blobRes = await fetch(tool.blobUrl, {
+    headers: {
+      Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+    },
+  });
 
-  if (!blob || !("downloadUrl" in blob)) {
-    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  if (!blobRes.ok) {
+    console.error("Blob fetch failed:", blobRes.status, await blobRes.text());
+    return NextResponse.json({ error: "File download failed" }, { status: 500 });
   }
 
-  return NextResponse.redirect(blob.downloadUrl as string);
+  const fileName = tool.fileName || "download";
+
+  return new NextResponse(blobRes.body, {
+    headers: {
+      "Content-Type": blobRes.headers.get("Content-Type") || "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${fileName}"`,
+      ...(blobRes.headers.get("Content-Length")
+        ? { "Content-Length": blobRes.headers.get("Content-Length")! }
+        : {}),
+    },
+  });
 }
