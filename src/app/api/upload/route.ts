@@ -36,7 +36,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const blob = await put(`tools/${Date.now()}-${file.name}`, file, {
-      access: "public",
+      access: "private",
     });
 
     return NextResponse.json({ url: blob.url, fileName: file.name });

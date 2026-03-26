@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { getDownloadUrl } from "@vercel/blob";
 
 export async function GET(
   _req: NextRequest,
@@ -31,7 +32,6 @@ export async function GET(
   const isOwner = tool.sellerId === user.id;
 
   if (!isAdmin && !isOwner) {
-    // Check active subscription
     const subscription = await db.subscription.findUnique({
       where: { buyerId_toolId: { buyerId: user.id, toolId: tool.id } },
     });
@@ -44,5 +44,8 @@ export async function GET(
     }
   }
 
-  return NextResponse.redirect(tool.blobUrl);
+  // Generate a temporary signed download URL for the private blob
+  const downloadUrl = await getDownloadUrl(tool.blobUrl);
+
+  return NextResponse.redirect(downloadUrl);
 }
