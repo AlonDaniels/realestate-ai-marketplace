@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToolCard from "@/components/ToolCard";
 import { tools, categories } from "@/lib/data";
+import { SlidersHorizontal } from "lucide-react";
 
 export default function BrowsePage() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -25,12 +26,12 @@ export default function BrowsePage() {
   return (
     <>
       <Header />
-      <main className="bg-sand-50 min-h-screen">
+      <main className="min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Page Header */}
           <div className="mb-10">
-            <h1 className="text-3xl sm:text-4xl font-bold text-ink-900 mb-2">Browse Marketplace</h1>
-            <p className="text-ink-500 text-lg">Discover AI tools built for real estate professionals</p>
+            <h1 className="font-heading text-3xl sm:text-4xl font-bold text-text-primary mb-2">Browse Marketplace</h1>
+            <p className="text-text-secondary text-lg">Discover AI tools built for real estate professionals</p>
           </div>
 
           {/* Filters */}
@@ -38,10 +39,10 @@ export default function BrowsePage() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setActiveCategory("all")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
                   activeCategory === "all"
-                    ? "bg-ink-900 text-white"
-                    : "bg-white text-ink-700 border border-border hover:bg-sand-100"
+                    ? "bg-primary text-white shadow-md"
+                    : "glass-card text-text-secondary hover:text-text-primary"
                 }`}
               >
                 All Tools
@@ -50,42 +51,47 @@ export default function BrowsePage() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
                     activeCategory === cat.id
-                      ? "bg-ink-900 text-white"
-                      : "bg-white text-ink-700 border border-border hover:bg-sand-100"
+                      ? "bg-primary text-white shadow-md"
+                      : "glass-card text-text-secondary hover:text-text-primary"
                   }`}
                 >
-                  {cat.icon} {cat.label}
+                  {cat.label}
                 </button>
               ))}
             </div>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-border text-sm bg-white text-ink-700 focus:outline-none focus:border-primary"
-            >
-              <option value="popular">Most Popular</option>
-              <option value="rating">Highest Rated</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-text-secondary" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-border text-sm bg-white text-text-secondary focus:outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="popular">Most Popular</option>
+                <option value="rating">Highest Rated</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+            </div>
           </div>
 
           {/* Results count */}
-          <p className="text-sm text-ink-500 mb-6">{sortedTools.length} tools found</p>
+          <p className="text-sm text-text-secondary mb-6">{sortedTools.length} tools found</p>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
             {sortedTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+              <div key={tool.id} className="animate-fade-in-up">
+                <ToolCard tool={tool} />
+              </div>
             ))}
           </div>
 
           {sortedTools.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-ink-500 text-lg">No tools found in this category yet.</p>
+              <p className="text-text-secondary text-lg">No tools found in this category yet.</p>
             </div>
           )}
         </div>
