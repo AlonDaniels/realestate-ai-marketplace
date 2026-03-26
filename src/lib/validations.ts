@@ -4,7 +4,8 @@ export const createToolSchema = z.object({
   name: z.string().min(3).max(100),
   description: z.string().min(20).max(500),
   longDescription: z.string().max(5000).optional(),
-  price: z.number().int().min(0).max(99900), // cents, max $999/mo
+  price: z.number().int().min(0).max(99900), // cents, max $999
+  pricingModel: z.enum(["ONE_TIME", "SUBSCRIPTION"]).default("SUBSCRIPTION"),
   category: z.enum(["ai-agent", "automation", "analytics", "marketing", "lead-gen", "property-mgmt"]),
   tags: z.array(z.string().max(30)).max(10),
   packageUrl: z.string().url().max(500).optional(),

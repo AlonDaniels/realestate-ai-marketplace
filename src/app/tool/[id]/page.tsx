@@ -11,7 +11,7 @@ import { Star, Download, ChevronRight } from "lucide-react";
 import type { Tool } from "@/lib/data";
 
 function dbToolToCard(t: {
-  slug: string; name: string; description: string; price: number; category: string;
+  slug: string; name: string; description: string; price: number; pricingModel: string; category: string;
   categoryLabel: string; installs: number; rating: number; tags: string[];
   seller: { firstName: string | null; lastName: string | null; avatarUrl: string | null; title: string | null };
 }): Tool {
@@ -20,6 +20,7 @@ function dbToolToCard(t: {
     name: t.name,
     description: t.description,
     price: t.price / 100,
+    pricingModel: t.pricingModel as Tool["pricingModel"],
     category: t.category as Tool["category"],
     categoryLabel: t.categoryLabel,
     creator: {
@@ -169,12 +170,14 @@ export default async function ToolPage({ params }: { params: Promise<{ id: strin
                   ) : (
                     <div>
                       <span className="text-3xl font-heading font-bold text-text-primary">${priceDisplay}</span>
-                      <span className="text-text-secondary text-sm">/month</span>
+                      <span className="text-text-secondary text-sm">
+                        {tool.pricingModel === "ONE_TIME" ? " one-time" : "/month"}
+                      </span>
                     </div>
                   )}
                 </div>
 
-                <SubscribeButton toolId={tool.id} price={tool.price} isSubscribed={isSubscribed} packageUrl={tool.packageUrl} />
+                <SubscribeButton toolId={tool.id} price={tool.price} pricingModel={tool.pricingModel} isSubscribed={isSubscribed} packageUrl={tool.packageUrl} />
 
                 <div className="mt-6 pt-6 border-t border-border/50">
                   <h3 className="text-sm font-heading font-semibold text-text-primary mb-3 uppercase tracking-wide">Created by</h3>

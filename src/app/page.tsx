@@ -12,7 +12,7 @@ import Link from "next/link";
 import { ArrowRight, DollarSign, Newspaper } from "lucide-react";
 
 function dbToolToCard(t: {
-  slug: string; name: string; description: string; price: number; category: string;
+  slug: string; name: string; description: string; price: number; pricingModel: string; category: string;
   categoryLabel: string; installs: number; rating: number; tags: string[];
   seller: { firstName: string | null; lastName: string | null; avatarUrl: string | null; title: string | null };
 }): Tool {
@@ -21,6 +21,7 @@ function dbToolToCard(t: {
     name: t.name,
     description: t.description,
     price: t.price / 100,
+    pricingModel: t.pricingModel as Tool["pricingModel"],
     category: t.category as Tool["category"],
     categoryLabel: t.categoryLabel,
     creator: {

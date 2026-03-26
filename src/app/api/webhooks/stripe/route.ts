@@ -31,17 +31,24 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const { buyerId, toolId } = session.metadata || {};
-        if (buyerId && toolId && session.subscription) {
+        if (buyerId && toolId) {
+          const stripeSubscriptionId = session.subscription
+            ? (session.subscription as string)
+            : null;
+          const stripePaymentIntentId = session.payment_intent
+            ? (session.payment_intent as string)
+            : null;
+
           await db.subscription.upsert({
             where: { buyerId_toolId: { buyerId, toolId } },
             create: {
               buyerId,
               toolId,
-              stripeSubscriptionId: session.subscription as string,
+              stripeSubscriptionId: stripeSubscriptionId || stripePaymentIntentId,
               status: "ACTIVE",
             },
             update: {
-              stripeSubscriptionId: session.subscription as string,
+              stripeSubscriptionId: stripeSubscriptionId || stripePaymentIntentId,
               status: "ACTIVE",
               canceledAt: null,
             },

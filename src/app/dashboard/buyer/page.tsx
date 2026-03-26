@@ -94,7 +94,7 @@ export default async function BuyerDashboard() {
                     <h3 className="font-heading font-semibold text-text-primary">{sub.tool.name}</h3>
                     <p className="text-sm text-text-secondary">
                       by {sub.tool.seller.firstName} {sub.tool.seller.lastName} &middot;{" "}
-                      {sub.tool.price === 0 ? "Free" : `$${sub.tool.price / 100}/mo`}
+                      {sub.tool.price === 0 ? "Free" : sub.tool.pricingModel === "ONE_TIME" ? `$${sub.tool.price / 100} one-time` : `$${sub.tool.price / 100}/mo`}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

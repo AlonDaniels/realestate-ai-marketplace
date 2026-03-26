@@ -4,6 +4,7 @@ export interface Tool {
   description: string;
   longDescription?: string;
   price: number;
+  pricingModel?: "ONE_TIME" | "SUBSCRIPTION";
   category: "ai-agent" | "automation" | "analytics" | "marketing" | "lead-gen" | "property-mgmt";
   categoryLabel: string;
   creator: {

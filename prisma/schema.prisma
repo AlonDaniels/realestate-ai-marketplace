@@ -21,6 +21,11 @@ enum ToolStatus {
   SUSPENDED
 }
 
+enum PricingModel {
+  ONE_TIME
+  SUBSCRIPTION
+}
+
 enum SubscriptionStatus {
   ACTIVE
   CANCELED
@@ -62,7 +67,8 @@ model Tool {
   slug               String       @unique
   description        String
   longDescription    String?
-  price              Int          // cents per month (0 = free)
+  price              Int          // cents (0 = free)
+  pricingModel       PricingModel @default(SUBSCRIPTION)
   category           String
   categoryLabel      String
   status             ToolStatus   @default(DRAFT)

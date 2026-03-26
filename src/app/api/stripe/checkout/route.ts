@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tool not found" }, { status: 404 });
     }
 
-    // Check if already subscribed
+    // Check if already subscribed/purchased
     const existingSub = await db.subscription.findUnique({
       where: { buyerId_toolId: { buyerId: buyer.id, toolId: tool.id } },
     });
@@ -76,25 +76,39 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const isOneTime = tool.pricingModel === "ONE_TIME";
+
     const sessionParams: Record<string, unknown> = {
       customer: stripeCustomerId,
-      mode: "subscription",
+      mode: isOneTime ? "payment" : "subscription",
       line_items: [{ price: tool.stripePriceId, quantity: 1 }],
       success_url: `${req.nextUrl.origin}/tool/${tool.slug}?subscribed=true`,
       cancel_url: `${req.nextUrl.origin}/tool/${tool.slug}`,
-      subscription_data: {
-        metadata: { buyerId: buyer.id, toolId: tool.id, sellerId: tool.sellerId },
-      },
       metadata: { buyerId: buyer.id, toolId: tool.id },
     };
 
-    // If seller has Stripe Connect, apply platform fee
-    if (tool.seller.stripeAccountId && tool.seller.stripeOnboarded) {
+    if (!isOneTime) {
+      // Subscription-specific params
       sessionParams.subscription_data = {
-        ...(sessionParams.subscription_data as Record<string, unknown>),
-        application_fee_percent: PLATFORM_FEE_PERCENT,
-        transfer_data: { destination: tool.seller.stripeAccountId },
+        metadata: { buyerId: buyer.id, toolId: tool.id, sellerId: tool.sellerId },
       };
+
+      // If seller has Stripe Connect, apply platform fee
+      if (tool.seller.stripeAccountId && tool.seller.stripeOnboarded) {
+        sessionParams.subscription_data = {
+          ...(sessionParams.subscription_data as Record<string, unknown>),
+          application_fee_percent: PLATFORM_FEE_PERCENT,
+          transfer_data: { destination: tool.seller.stripeAccountId },
+        };
+      }
+    } else {
+      // One-time payment: apply platform fee via Connect if seller has it
+      if (tool.seller.stripeAccountId && tool.seller.stripeOnboarded) {
+        sessionParams.payment_intent_data = {
+          application_fee_amount: Math.round(tool.price * PLATFORM_FEE_PERCENT / 100),
+          transfer_data: { destination: tool.seller.stripeAccountId },
+        };
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams as Parameters<typeof stripe.checkout.sessions.create>[0]);

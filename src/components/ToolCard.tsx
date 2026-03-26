@@ -17,7 +17,7 @@ export default function ToolCard({ tool }: { tool: Tool }) {
             {tool.price === 0 ? (
               <span className="text-primary">Free</span>
             ) : (
-              <span className="text-text-primary">${tool.price}<span className="text-text-secondary text-xs font-normal">/mo</span></span>
+              <span className="text-text-primary">${tool.price}<span className="text-text-secondary text-xs font-normal">{tool.pricingModel === "ONE_TIME" ? "" : "/mo"}</span></span>
             )}
           </div>
         </div>

@@ -8,14 +8,17 @@ import { Loader2, Shield, ExternalLink, CheckCircle } from "lucide-react";
 export default function SubscribeButton({
   toolId,
   price,
+  pricingModel,
   isSubscribed,
   packageUrl,
 }: {
   toolId: string;
   price: number;
+  pricingModel?: string;
   isSubscribed?: boolean;
   packageUrl?: string | null;
 }) {
+  const isOneTime = pricingModel === "ONE_TIME";
   const { user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -74,7 +77,7 @@ export default function SubscribeButton({
           </div>
         )}
         <p className="text-xs text-text-secondary text-center">
-          {price === 0 ? "Free plan — no charges" : "Your subscription is active"}
+          {price === 0 ? "Free plan — no charges" : isOneTime ? "Lifetime access — one-time purchase" : "Your subscription is active"}
         </p>
       </div>
     );
@@ -94,13 +97,15 @@ export default function SubscribeButton({
           </>
         ) : price === 0 ? (
           "Get It Free"
+        ) : isOneTime ? (
+          "Buy Now"
         ) : (
           "Subscribe Now"
         )}
       </button>
       <p className="text-xs text-text-secondary text-center flex items-center justify-center gap-1">
         <Shield className="w-3 h-3" />
-        {price === 0 ? "No credit card required" : "Cancel anytime. 7-day free trial."}
+        {price === 0 ? "No credit card required" : isOneTime ? "One-time payment. Lifetime access." : "Cancel anytime. 7-day free trial."}
       </p>
     </div>
   );

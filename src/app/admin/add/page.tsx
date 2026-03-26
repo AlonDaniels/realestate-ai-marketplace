@@ -25,6 +25,7 @@ export default function AdminAddProduct() {
     description: "",
     longDescription: "",
     price: "",
+    pricingModel: "SUBSCRIPTION" as "ONE_TIME" | "SUBSCRIPTION",
     category: "ai-agent",
     tags: "",
     packageUrl: "",
@@ -47,6 +48,7 @@ export default function AdminAddProduct() {
           description: form.description,
           longDescription: form.longDescription || undefined,
           price: priceInCents,
+          pricingModel: form.pricingModel,
           category: form.category,
           tags,
           packageUrl: form.packageUrl || undefined,
@@ -134,13 +136,43 @@ export default function AdminAddProduct() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Price ($/month)</label>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                  Price ($){form.pricingModel === "SUBSCRIPTION" ? "/month" : ""}
+                </label>
                 <input
                   type="number" min="0" max="999" step="1"
                   value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
                   placeholder="0 = Free"
                   className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Pricing Model</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, pricingModel: "SUBSCRIPTION" })}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-medium cursor-pointer transition-all ${
+                    form.pricingModel === "SUBSCRIPTION"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-surface text-text-secondary hover:border-primary/40"
+                  }`}
+                >
+                  Monthly Subscription
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, pricingModel: "ONE_TIME" })}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-medium cursor-pointer transition-all ${
+                    form.pricingModel === "ONE_TIME"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-surface text-text-secondary hover:border-primary/40"
+                  }`}
+                >
+                  One-Time Purchase
+                </button>
               </div>
             </div>
 

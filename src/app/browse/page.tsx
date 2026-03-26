@@ -14,6 +14,7 @@ interface DbTool {
   slug: string;
   description: string;
   price: number;
+  pricingModel: string;
   category: string;
   categoryLabel: string;
   installs: number;
@@ -28,6 +29,7 @@ function dbToolToCard(t: DbTool): Tool {
     name: t.name,
     description: t.description,
     price: t.price / 100,
+    pricingModel: t.pricingModel as Tool["pricingModel"],
     category: t.category as Tool["category"],
     categoryLabel: t.categoryLabel,
     creator: {

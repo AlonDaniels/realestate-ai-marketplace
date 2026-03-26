@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { name, description, longDescription, price, category, tags, packageUrl } = parsed.data;
+  const { name, description, longDescription, price, pricingModel, category, tags, packageUrl } = parsed.data;
 
   const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   let slug = baseSlug;
@@ -72,12 +72,18 @@ export async function POST(req: NextRequest) {
     });
     stripeProductId = stripeProduct.id;
 
-    const stripePrice = await stripe.prices.create({
-      product: stripeProduct.id,
-      unit_amount: price,
-      currency: "usd",
-      recurring: { interval: "month" },
-    });
+    const stripePrice = pricingModel === "SUBSCRIPTION"
+      ? await stripe.prices.create({
+          product: stripeProduct.id,
+          unit_amount: price,
+          currency: "usd",
+          recurring: { interval: "month" },
+        })
+      : await stripe.prices.create({
+          product: stripeProduct.id,
+          unit_amount: price,
+          currency: "usd",
+        });
     stripePriceId = stripePrice.id;
   }
 
@@ -89,6 +95,7 @@ export async function POST(req: NextRequest) {
       description,
       longDescription,
       price,
+      pricingModel,
       category,
       categoryLabel: categoryLabels[category] || category,
       tags,
