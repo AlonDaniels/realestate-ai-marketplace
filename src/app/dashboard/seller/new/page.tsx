@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ArrowLeft, Loader2, Upload, X, FileText } from "lucide-react";
@@ -18,7 +17,7 @@ const CATEGORIES = [
 ];
 
 const ALLOWED_EXTENSIONS = ".zip,.pdf,.json,.md,.xlsx,.csv";
-const MAX_SIZE_MB = 50;
+const MAX_SIZE_MB = 4.5;
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -67,12 +66,16 @@ export default function NewToolPage() {
 
       if (file) {
         setUploadProgress("Uploading file...");
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload",
-        });
-        blobUrl = blob.url;
-        fileName = file.name;
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          setError(uploadData.error || "File upload failed");
+          return;
+        }
+        blobUrl = uploadData.url;
+        fileName = uploadData.fileName;
         setUploadProgress("");
       }
 
