@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { getDownloadUrl } from "@vercel/blob";
+import { get } from "@vercel/blob";
 
 export async function GET(
   _req: NextRequest,
@@ -44,8 +44,12 @@ export async function GET(
     }
   }
 
-  // Generate a temporary signed download URL for the private blob
-  const downloadUrl = await getDownloadUrl(tool.blobUrl);
+  // Get a signed download URL for the private blob
+  const blob = await get(tool.blobUrl, { access: "private" });
 
-  return NextResponse.redirect(downloadUrl);
+  if (!blob || !("downloadUrl" in blob)) {
+    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  }
+
+  return NextResponse.redirect(blob.downloadUrl as string);
 }
