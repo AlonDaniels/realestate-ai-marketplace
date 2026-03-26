@@ -27,6 +27,7 @@ export default function AdminAddProduct() {
     price: "",
     category: "ai-agent",
     tags: "",
+    packageUrl: "",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,6 +49,7 @@ export default function AdminAddProduct() {
           price: priceInCents,
           category: form.category,
           tags,
+          packageUrl: form.packageUrl || undefined,
         }),
       });
 
@@ -140,6 +142,16 @@ export default function AdminAddProduct() {
                   className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Access URL</label>
+              <input
+                type="url" value={form.packageUrl} onChange={(e) => setForm({ ...form, packageUrl: e.target.value })}
+                placeholder="https://app.example.com — where users go after subscribing"
+                className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface"
+              />
+              <p className="text-xs text-text-secondary mt-1">The URL subscribers will get access to</p>
             </div>
 
             <div>

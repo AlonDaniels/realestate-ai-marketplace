@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToolCard from "@/components/ToolCard";
@@ -53,6 +54,19 @@ export default async function ToolPage({ params }: { params: Promise<{ id: strin
 
   if (!tool) {
     notFound();
+  }
+
+  // Check if current user is subscribed
+  let isSubscribed = false;
+  const { userId } = await auth();
+  if (userId) {
+    const dbUser = await db.user.findUnique({ where: { clerkId: userId } });
+    if (dbUser) {
+      const subscription = await db.subscription.findUnique({
+        where: { buyerId_toolId: { buyerId: dbUser.id, toolId: tool.id } },
+      });
+      isSubscribed = subscription?.status === "ACTIVE";
+    }
   }
 
   const relatedTools = await db.tool.findMany({
@@ -160,7 +174,7 @@ export default async function ToolPage({ params }: { params: Promise<{ id: strin
                   )}
                 </div>
 
-                <SubscribeButton toolId={tool.id} price={tool.price} />
+                <SubscribeButton toolId={tool.id} price={tool.price} isSubscribed={isSubscribed} packageUrl={tool.packageUrl} />
 
                 <div className="mt-6 pt-6 border-t border-border/50">
                   <h3 className="text-sm font-heading font-semibold text-text-primary mb-3 uppercase tracking-wide">Created by</h3>

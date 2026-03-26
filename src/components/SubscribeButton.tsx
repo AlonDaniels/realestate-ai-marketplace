@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, ExternalLink, CheckCircle } from "lucide-react";
 
 export default function SubscribeButton({
   toolId,
   price,
+  isSubscribed,
+  packageUrl,
 }: {
   toolId: string;
   price: number;
+  isSubscribed?: boolean;
+  packageUrl?: string | null;
 }) {
   const { user } = useUser();
   const router = useRouter();
@@ -32,7 +36,6 @@ export default function SubscribeButton({
       const data = await res.json();
 
       if (data.free && data.success) {
-        // Free tool — just reload
         window.location.reload();
         return;
       }
@@ -47,6 +50,34 @@ export default function SubscribeButton({
     } finally {
       setLoading(false);
     }
+  }
+
+  if (isSubscribed) {
+    return (
+      <div>
+        <div className="flex items-center gap-2 text-primary mb-3 justify-center">
+          <CheckCircle className="w-4 h-4" />
+          <span className="text-sm font-semibold">Subscribed</span>
+        </div>
+        {packageUrl ? (
+          <a
+            href={packageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-cta w-full font-semibold py-3.5 rounded-full text-base mb-3 cursor-pointer inline-flex items-center justify-center gap-2"
+          >
+            Access Tool <ExternalLink className="w-4 h-4" />
+          </a>
+        ) : (
+          <div className="w-full text-center font-semibold py-3.5 rounded-full text-base mb-3 bg-primary/10 text-primary">
+            Access Coming Soon
+          </div>
+        )}
+        <p className="text-xs text-text-secondary text-center">
+          {price === 0 ? "Free plan — no charges" : "Your subscription is active"}
+        </p>
+      </div>
+    );
   }
 
   return (

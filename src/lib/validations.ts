@@ -7,6 +7,7 @@ export const createToolSchema = z.object({
   price: z.number().int().min(0).max(99900), // cents, max $999/mo
   category: z.enum(["ai-agent", "automation", "analytics", "marketing", "lead-gen", "property-mgmt"]),
   tags: z.array(z.string().max(30)).max(10),
+  packageUrl: z.string().url().max(500).optional(),
 });
 
 export const updateToolSchema = createToolSchema.partial();

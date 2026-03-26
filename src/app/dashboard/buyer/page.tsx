@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { Package, Star, ArrowRight, Store } from "lucide-react";
+import { Package, Star, ArrowRight, Store, ExternalLink } from "lucide-react";
 
 export default async function BuyerDashboard() {
   const { userId } = await auth();
@@ -101,12 +101,23 @@ export default async function BuyerDashboard() {
                     <span className="text-xs font-semibold text-primary bg-primary/8 rounded-full px-3 py-1 uppercase">
                       {sub.status}
                     </span>
-                    <Link
-                      href={`/tool/${sub.tool.slug}`}
-                      className="text-sm text-primary font-medium hover:underline cursor-pointer"
-                    >
-                      View
-                    </Link>
+                    {sub.tool.packageUrl ? (
+                      <a
+                        href={sub.tool.packageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-cta font-semibold px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        Access <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    ) : (
+                      <Link
+                        href={`/tool/${sub.tool.slug}`}
+                        className="text-sm text-primary font-medium hover:underline cursor-pointer"
+                      >
+                        View
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}

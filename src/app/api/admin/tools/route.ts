@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { createToolSchema } from "@/lib/validations";
+import { stripe } from "@/lib/stripe";
 
 // GET /api/admin/tools — list all tools (admin only)
 export async function GET() {
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { name, description, longDescription, price, category, tags } = parsed.data;
+  const { name, description, longDescription, price, category, tags, packageUrl } = parsed.data;
 
   const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   let slug = baseSlug;
@@ -59,6 +60,27 @@ export async function POST(req: NextRequest) {
     "property-mgmt": "Property Mgmt",
   };
 
+  // Create Stripe product and price for paid tools
+  let stripeProductId: string | undefined;
+  let stripePriceId: string | undefined;
+
+  if (price > 0) {
+    const stripeProduct = await stripe.products.create({
+      name,
+      description,
+      metadata: { sellerId: user.id, slug },
+    });
+    stripeProductId = stripeProduct.id;
+
+    const stripePrice = await stripe.prices.create({
+      product: stripeProduct.id,
+      unit_amount: price,
+      currency: "usd",
+      recurring: { interval: "month" },
+    });
+    stripePriceId = stripePrice.id;
+  }
+
   const tool = await db.tool.create({
     data: {
       sellerId: user.id,
@@ -70,6 +92,9 @@ export async function POST(req: NextRequest) {
       category,
       categoryLabel: categoryLabels[category] || category,
       tags,
+      packageUrl,
+      stripeProductId,
+      stripePriceId,
       status: "PUBLISHED",
       publishedAt: new Date(),
     },
