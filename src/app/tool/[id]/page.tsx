@@ -5,7 +5,8 @@ import ToolCard from "@/components/ToolCard";
 import { getToolById, tools } from "@/lib/data";
 import { categoryIconsHero } from "@/lib/icons";
 import Link from "next/link";
-import { Star, Download, ChevronRight, Shield } from "lucide-react";
+import { Star, Download, ChevronRight } from "lucide-react";
+import SubscribeButton from "@/components/SubscribeButton";
 
 export function generateStaticParams() {
   return tools.map((tool) => ({ id: tool.id }));
@@ -103,13 +104,7 @@ export default async function ToolPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* CTA */}
-                <button className="btn-cta w-full font-semibold py-3.5 rounded-full text-base mb-3 cursor-pointer">
-                  {tool.price === 0 ? "Get It Free" : "Subscribe Now"}
-                </button>
-                <p className="text-xs text-text-secondary text-center flex items-center justify-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  {tool.price === 0 ? "No credit card required" : "Cancel anytime. 7-day free trial."}
-                </p>
+                <SubscribeButton toolId={tool.id} price={tool.price} />
 
                 {/* Creator */}
                 <div className="mt-6 pt-6 border-t border-border/50">
