@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { Loader2, Shield, ExternalLink, CheckCircle } from "lucide-react";
+import { Loader2, Shield, ExternalLink, CheckCircle, Download } from "lucide-react";
 
 export default function SubscribeButton({
   toolId,
@@ -11,12 +11,16 @@ export default function SubscribeButton({
   pricingModel,
   isSubscribed,
   packageUrl,
+  blobUrl,
+  fileName,
 }: {
   toolId: string;
   price: number;
   pricingModel?: string;
   isSubscribed?: boolean;
   packageUrl?: string | null;
+  blobUrl?: string | null;
+  fileName?: string | null;
 }) {
   const isOneTime = pricingModel === "ONE_TIME";
   const { user } = useUser();
@@ -60,22 +64,37 @@ export default function SubscribeButton({
       <div>
         <div className="flex items-center gap-2 text-primary mb-3 justify-center">
           <CheckCircle className="w-4 h-4" />
-          <span className="text-sm font-semibold">Subscribed</span>
+          <span className="text-sm font-semibold">{isOneTime ? "Purchased" : "Subscribed"}</span>
         </div>
+
+        {blobUrl ? (
+          <a
+            href={`/api/tools/${toolId}/download`}
+            className="btn-cta w-full font-semibold py-3.5 rounded-full text-base mb-3 cursor-pointer inline-flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Download {fileName || "File"}
+          </a>
+        ) : null}
+
         {packageUrl ? (
           <a
             href={packageUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-cta w-full font-semibold py-3.5 rounded-full text-base mb-3 cursor-pointer inline-flex items-center justify-center gap-2"
+            className={`w-full font-semibold py-3.5 rounded-full text-base mb-3 cursor-pointer inline-flex items-center justify-center gap-2 ${
+              blobUrl ? "btn-secondary" : "btn-cta"
+            }`}
           >
             Access Tool <ExternalLink className="w-4 h-4" />
           </a>
-        ) : (
+        ) : null}
+
+        {!blobUrl && !packageUrl && (
           <div className="w-full text-center font-semibold py-3.5 rounded-full text-base mb-3 bg-primary/10 text-primary">
             Access Coming Soon
           </div>
         )}
+
         <p className="text-xs text-text-secondary text-center">
           {price === 0 ? "Free plan — no charges" : isOneTime ? "Lifetime access — one-time purchase" : "Your subscription is active"}
         </p>

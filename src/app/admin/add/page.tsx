@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Upload, X, FileText } from "lucide-react";
 import Link from "next/link";
 
 const CATEGORIES = [
@@ -16,10 +17,22 @@ const CATEGORIES = [
   { id: "property-mgmt", label: "Property Mgmt" },
 ];
 
+const ALLOWED_EXTENSIONS = ".zip,.pdf,.json,.md,.xlsx,.csv";
+const MAX_SIZE_MB = 50;
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function AdminAddProduct() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState("");
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -31,12 +44,39 @@ export default function AdminAddProduct() {
     packageUrl: "",
   });
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    if (selected.size > MAX_SIZE_MB * 1024 * 1024) {
+      setError(`File too large. Maximum size is ${MAX_SIZE_MB}MB.`);
+      return;
+    }
+    setError("");
+    setFile(selected);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
+      // Upload file first if selected
+      let blobUrl: string | undefined;
+      let fileName: string | undefined;
+
+      if (file) {
+        setUploadProgress("Uploading file...");
+        const blob = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload",
+        });
+        blobUrl = blob.url;
+        fileName = file.name;
+        setUploadProgress("");
+      }
+
       const priceInCents = form.price === "" || form.price === "0" ? 0 : Math.round(parseFloat(form.price) * 100);
       const tags = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
 
@@ -52,6 +92,8 @@ export default function AdminAddProduct() {
           category: form.category,
           tags,
           packageUrl: form.packageUrl || undefined,
+          blobUrl,
+          fileName,
         }),
       });
 
@@ -66,6 +108,7 @@ export default function AdminAddProduct() {
       setError("Something went wrong");
     } finally {
       setLoading(false);
+      setUploadProgress("");
     }
   }
 
@@ -176,14 +219,57 @@ export default function AdminAddProduct() {
               </div>
             </div>
 
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Product File</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ALLOWED_EXTENSIONS}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {file ? (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-primary/30 bg-primary/5">
+                  <FileText className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">{file.name}</p>
+                    <p className="text-xs text-text-secondary">{formatFileSize(file.size)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    className="text-text-secondary hover:text-red-500 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full px-4 py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 bg-surface text-center cursor-pointer transition-colors"
+                >
+                  <Upload className="w-6 h-6 text-text-secondary/60 mx-auto mb-2" />
+                  <p className="text-sm text-text-secondary">Click to upload a file</p>
+                  <p className="text-xs text-text-secondary/60 mt-1">ZIP, PDF, JSON, MD, XLSX, CSV — max {MAX_SIZE_MB}MB</p>
+                </button>
+              )}
+              {uploadProgress && (
+                <p className="text-xs text-primary mt-1 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> {uploadProgress}
+                </p>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1.5">Access URL</label>
               <input
                 type="url" value={form.packageUrl} onChange={(e) => setForm({ ...form, packageUrl: e.target.value })}
-                placeholder="https://app.example.com — where users go after subscribing"
+                placeholder="https://app.example.com — external tool link (optional)"
                 className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface"
               />
-              <p className="text-xs text-text-secondary mt-1">The URL subscribers will get access to</p>
+              <p className="text-xs text-text-secondary mt-1">For SaaS tools — the URL subscribers access directly</p>
             </div>
 
             <div>
@@ -199,7 +285,7 @@ export default function AdminAddProduct() {
               type="submit" disabled={loading}
               className="btn-cta w-full font-semibold py-3.5 rounded-full text-base cursor-pointer disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing...</> : <><Plus className="w-4 h-4" /> Publish Product</>}
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {uploadProgress || "Publishing..."}</> : <><Plus className="w-4 h-4" /> Publish Product</>}
             </button>
           </form>
         </div>

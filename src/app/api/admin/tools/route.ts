@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { name, description, longDescription, price, pricingModel, category, tags, packageUrl } = parsed.data;
+  const { name, description, longDescription, price, pricingModel, category, tags, packageUrl, blobUrl, fileName } = parsed.data;
 
   const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   let slug = baseSlug;
@@ -100,6 +100,8 @@ export async function POST(req: NextRequest) {
       categoryLabel: categoryLabels[category] || category,
       tags,
       packageUrl,
+      blobUrl,
+      fileName,
       stripeProductId,
       stripePriceId,
       status: "PUBLISHED",

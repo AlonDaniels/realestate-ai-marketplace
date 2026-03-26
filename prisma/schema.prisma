@@ -74,7 +74,9 @@ model Tool {
   status             ToolStatus   @default(DRAFT)
   tags               String[]
   imageUrl           String?
-  packageUrl         String?
+  packageUrl         String?      // External access URL (SaaS link)
+  blobUrl            String?      // Vercel Blob URL for downloadable file
+  fileName           String?      // Original filename for downloads
   stripeProductId    String?      @unique
   stripePriceId      String?      @unique
   installs           Int          @default(0)

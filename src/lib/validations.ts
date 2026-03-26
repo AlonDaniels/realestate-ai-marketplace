@@ -9,6 +9,8 @@ export const createToolSchema = z.object({
   category: z.enum(["ai-agent", "automation", "analytics", "marketing", "lead-gen", "property-mgmt"]),
   tags: z.array(z.string().max(30)).max(10),
   packageUrl: z.string().url().max(500).optional(),
+  blobUrl: z.string().url().max(1000).optional(),
+  fileName: z.string().max(200).optional(),
 });
 
 export const updateToolSchema = createToolSchema.partial();

@@ -177,7 +177,7 @@ export default async function ToolPage({ params }: { params: Promise<{ id: strin
                   )}
                 </div>
 
-                <SubscribeButton toolId={tool.id} price={tool.price} pricingModel={tool.pricingModel} isSubscribed={isSubscribed} packageUrl={tool.packageUrl} />
+                <SubscribeButton toolId={tool.id} price={tool.price} pricingModel={tool.pricingModel} isSubscribed={isSubscribed} packageUrl={tool.packageUrl} blobUrl={tool.blobUrl} fileName={tool.fileName} />
 
                 <div className="mt-6 pt-6 border-t border-border/50">
                   <h3 className="text-sm font-heading font-semibold text-text-primary mb-3 uppercase tracking-wide">Created by</h3>
